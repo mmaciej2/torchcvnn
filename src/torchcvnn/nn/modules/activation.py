@@ -27,6 +27,7 @@ from typing import Callable
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.parameter import Parameter
 
 # Local imports
 from torchcvnn.nn import functional as c_F
@@ -183,11 +184,22 @@ class zAbsReLU(nn.Module):
     trainable.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        num_parameters: int = 1,
+        init: float = 1.0,
+        device: torch.device = None,
+        dtype: torch.dtype = None,
+    ):
+        factory_kwargs = {"device": device, "dtype": dtype}
+        self.num_parameters = num_parameters
         super().__init__()
-        self.a = torch.nn.parameter.Parameter(
-            data=torch.Tensor([1.0]), requires_grad=True
-        )
+        self.init = init
+        self.a = Parameter(torch.empty(num_parameters, **factory_kwargs))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        torch.nn.init.constant_(self.a, self.init)
 
     def forward(self, z: torch.Tensor):
         """
@@ -208,11 +220,22 @@ class zLeakyReLU(nn.Module):
 
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        num_parameters: int = 1,
+        init: float = 0.2,
+        device: torch.device = None,
+        dtype: torch.dtype = None,
+    ):
+        factory_kwargs = {"device": device, "dtype": dtype}
+        self.num_parameters = num_parameters
         super().__init__()
-        self.a = torch.nn.parameter.Parameter(
-            data=torch.Tensor([0.2]), requires_grad=True
-        )
+        self.init = init
+        self.a = Parameter(torch.empty(num_parameters, **factory_kwargs))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        torch.nn.init.constant_(self.a, self.init)
 
     def forward(self, z: torch.Tensor):
         """
@@ -257,9 +280,22 @@ class modReLU(nn.Module):
     :math:`modReLU(z) = ReLU(|z| + b) e^{j \theta}`
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        num_parameters: int = 1,
+        init: float = 0.0,
+        device: torch.device = None,
+        dtype: torch.dtype = None,
+    ):
+        factory_kwargs = {"device": device, "dtype": dtype}
+        self.num_parameters = num_parameters
         super().__init__()
-        self.b = torch.nn.Parameter(torch.tensor(0.0, dtype=torch.float), True)
+        self.init = init
+        self.b = torch.nn.Parameter(torch.empty(num_parameters, **factory_kwargs))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        torch.nn.init.constant_(self.b, self.init)
 
     def forward(self, z: torch.Tensor):
         """
@@ -374,12 +410,12 @@ class MultiheadAttention(nn.Module):
         self.q_norm = norm_layer(self.head_dim)
         self.k_norm = norm_layer(self.head_dim)
 
-        self.in_proj_weight = torch.nn.parameter.Parameter(
+        self.in_proj_weight = Parameter(
             torch.empty((3 * embed_dim, embed_dim), **factory_kwargs)
         )
 
         if bias:
-            self.in_proj_bias = torch.nn.parameter.Parameter(
+            self.in_proj_bias = Parameter(
                 torch.empty(3 * embed_dim, **factory_kwargs)
             )
         else:
