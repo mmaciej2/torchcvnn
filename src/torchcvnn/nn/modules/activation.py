@@ -307,6 +307,74 @@ class modReLU(nn.Module):
         return nn.functional.relu(z.abs() + self.b) * torch.exp(1j * z.angle())
 
 
+class modSigmoid(nn.Module):
+    r"""
+    Applies a Sigmoid with parametric offset on the amplitude, keeping the phase unchanged.
+
+    :math:`modSigmoid(z) = Sigmoid(|z| + b) e^{j \theta}`
+    """
+
+    def __init__(
+        self,
+        num_parameters: init = 1,
+        init: float = 0.0,
+        device: torch.device = None,
+        dtype: torch.dtype = None,
+    ):
+        factory_kwargs = {"device": device, "dtype": dtype}
+        self.num_parameters = num_parameters
+        super().__init__()
+        self.init = init
+        self.b = torch.nn.Parameter(torch.empty(num_parameters, **factory_kwargs))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        torch.nn.init.constant_(self.b, self.init)
+
+    def forward(self, z: torch.Tensor):
+        """
+        Performs the forward pass.
+
+        Arguments:
+            z: the input tensor on which to apply the activation function
+        """
+        return torch.sigmoid(z.abs() + self.b) * torch.exp(1j * z.angle())
+
+
+class wSigmoid(nn.Module):
+    r"""
+    Returns a unit magnitude complex number with phase weighted by a Sigmoid of the amplitude.
+
+    :math:`wSigmoid(z) = e^{j \theta Sigmoid(|z| + b), \theta \in (-\pi, \pi]`
+    """
+
+    def __init__(
+        self,
+        num_parameters: init = 1,
+        init: float = 0.0,
+        device: torch.device = None,
+        dtype: torch.dtype = None,
+    ):
+        factory_kwargs = {"device": device, "dtype": dtype}
+        self.num_parameters = num_parameters
+        super().__init__()
+        self.init = init
+        self.b = torch.nn.Parameter(torch.empty(num_parameters, **factory_kwargs))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        torch.nn.init.constant_(self.b, self.init)
+
+    def forward(self, z: torch.Tensor):
+        """
+        Performs the forward pass.
+
+        Arguments:
+            z: the input tensor on which to apply the activation function
+        """
+        return torch.exp(1j * z.angle() * torch.sigmoid(z.abs() + self.b))
+
+
 class Cardioid(nn.Module):
     r"""
     The cardioid activation function as proposed by Virtue et al. (2019) is given by :

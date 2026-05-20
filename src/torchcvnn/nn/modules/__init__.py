@@ -49,6 +49,8 @@ from .activation import (
     zLeakyReLU,
     Mod,
     modReLU,
+    modSigmoid,
+    wSigmoid,
     Cardioid,
     MultiheadAttention,
 )
