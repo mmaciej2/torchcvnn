@@ -316,7 +316,7 @@ class modSigmoid(nn.Module):
 
     def __init__(
         self,
-        num_parameters: init = 1,
+        num_parameters: int = 1,
         init: float = 0.0,
         device: torch.device = None,
         dtype: torch.dtype = None,
@@ -350,7 +350,7 @@ class wSigmoid(nn.Module):
 
     def __init__(
         self,
-        num_parameters: init = 1,
+        num_parameters: int = 1,
         init: float = 0.0,
         device: torch.device = None,
         dtype: torch.dtype = None,
